@@ -54,18 +54,22 @@ def parse_cookies(response, host):
         for cookie in response.headers["set-cookie"]:
             cookie_jar = {}
             name_val, *rest = cookie.split(";")
-            name, value = name_val.split("=", 1)
-            cookie_jar["name"] = name.strip()
-            cookie_jar["value"] = value
-            for item in rest:
-                try:
-                    name, value = item.split("=")
-                    if value.startswith("."):
-                        value = value[1:]
-                    cookie_jar[name.lower().lstrip()] = value
-                except ValueError:
-                    cookie_jar[item.lower().lstrip()] = True
-            cookie_pie.append(cookie_jar)
+            try:
+                # Cookie may have bad format
+                name, value = name_val.split("=", 1)
+                cookie_jar["name"] = name.strip()
+                cookie_jar["value"] = value
+                for item in rest:
+                    try:
+                        name, value = item.split("=")
+                        if value.startswith("."):
+                            value = value[1:]
+                        cookie_jar[name.lower().lstrip()] = value
+                    except ValueError:
+                        cookie_jar[item.lower().lstrip()] = True
+                cookie_pie.append(cookie_jar)
+            except ValueError:
+                pass
         response.cookies = [Cookie(host, x) for x in cookie_pie]
     except KeyError:
         pass
